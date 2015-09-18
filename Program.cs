@@ -10,17 +10,19 @@ namespace portstatus
 		{
 		    var defaultPort = int.Parse(ConfigurationManager.AppSettings.Get("defaultPort") ?? "80");
 
-         	if (args.Length <= 1)
+         	if (args.Length < 1)
 			{
-				Console.WriteLine("== Checks if a port is open on an address ==");
-				Console.WriteLine("portstatus.exe <address> <port>");
-                Console.WriteLine($"<port> is defaulted to {defaultPort}");
+				Console.WriteLine("DESCRIPTION: Checks if a port is open on an address");
+				Console.WriteLine("SYNTAX: portstatus.exe address [port]");
+                Console.WriteLine("ARGUMENTS:\r\n" +
+                                  "  address      Address to check\r\n" +
+                                 $"  port         Port to check, Default {defaultPort}");
 
                 return;
 			}
 
 			var address = args[0];
-			var port = int.Parse(args[1]);
+			var port = args.Length == 1 ? defaultPort : int.Parse(args[1]);
 			
 			try
 			{
