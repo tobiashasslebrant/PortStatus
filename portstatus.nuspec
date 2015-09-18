@@ -1,0 +1,15 @@
+﻿?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+	<metadata>
+		<id>portstatus</id>
+		<version>$version$</version>
+		<authors>Tobias Hasslebrant</authors>
+		<owners>Tobias Hasslebrant</owners>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<description>Check if port is open</description>
+	</metadata>
+	<files>
+		<file src="bin\*.dll" target="bin" />
+		<file src="App.config" target="." />
+	</files>
+</package>
