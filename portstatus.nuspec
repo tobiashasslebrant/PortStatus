@@ -10,6 +10,7 @@
 	</metadata>
 	<files>
 		<file src="bin\*.dll" target="bin" />
+		<file src="bin\*.exe" target="bin" />
 		<file src="App.config" target="." />
 	</files>
 </package>
