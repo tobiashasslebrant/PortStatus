@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Configuration;
 using System.Net.Sockets;
 
 namespace portstatus
@@ -7,34 +8,38 @@ namespace portstatus
 	{
 		static void Main(string[] args)
 		{
-			if (args.Length <= 1)
+		    var defaultPort = int.Parse(ConfigurationManager.AppSettings.Get("defaultPort") ?? "80");
+
+         	if (args.Length <= 1)
 			{
 				Console.WriteLine("== Checks if a port is open on an address ==");
 				Console.WriteLine("portstatus.exe <address> <port>");
-				return;
+                Console.WriteLine($"<port> is defaulted to {defaultPort}");
+
+                return;
 			}
 
 			var address = args[0];
 			var port = int.Parse(args[1]);
-			var tcpClient = new TcpClient();
-
+			
 			try
 			{
-
-				tcpClient.Connect(address, port);
-				tcpClient.Close();
-				Console.ForegroundColor = ConsoleColor.Green;
-				Console.WriteLine("OPEN: Port {0} is open on address {1}", port, address);
+			    using (var tcpClient = new TcpClient())
+			    {
+			        tcpClient.Connect(address, port);
+			        tcpClient.Close();
+			    }
+			    Console.ForegroundColor = ConsoleColor.Green;
+				Console.WriteLine($"OPEN: Port {port} is open on address {address}");
 			}
 			catch (Exception e)	
 			{
-				Console.ForegroundColor = ConsoleColor.Red;
-				Console.WriteLine("CLOSED: Port {0} is closed or not in use on address {1}", port, address);
+                Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine($"CLOSED: Port {port} is closed or not in use on {address}");
 				Console.ForegroundColor = ConsoleColor.DarkRed;
-				Console.WriteLine("Details: {0}", e.Message);
+				Console.WriteLine($"Details: {e.Message}");
 			}
 			Console.ResetColor();
-
 		}
 	}
 }
