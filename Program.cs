@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace portstatus
 {
@@ -16,7 +17,13 @@ SYNTAX: portstatus.exe address port [-listen]
 ARGUMENTS:  
     address      Address to check or listen to (can be * when listening)  
     port         Port to check or listen to
-    [-listen]    listening, if not specified is check");
+    [-listen]    listening, if not specified is check
+
+EXAMPLES:
+    portstatus.exe 1.2.3.4 90       Check if port 90 is open on ip address 1.2.3.4
+    portstatus.exe * 88 -listen     Listens for incoming calls to current machine to port 88 on all ip addresses
+
+");
                 return;
 			}
 
@@ -53,13 +60,13 @@ ARGUMENTS:
 	        Console.ResetColor();
 	    }
 
-        //https://msdn.microsoft.com/en-us/library/system.net.sockets.tcplistener(v=vs.110).aspx
-	    static void ListenToPort(string address, int port)
+        static object _lock = new object();
+        //http://stackoverflow.com/questions/19387086/how-to-set-up-tcplistener-to-always-listen-and-accept-multiple-connections
+        static void ListenToPort(string address, int port)
         {
             TcpListener server = null;
             try
             {
-
                 var ipAddress = address == "*"
                     ? IPAddress.Any
                     : IPAddress.Parse(address);
@@ -69,31 +76,33 @@ ARGUMENTS:
 
                 var bytes = new byte[256];
 
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("Waiting for a connection... ");
+                Console.ResetColor();
+
                 while (true)
                 {
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    Console.Write("Waiting for a connection... ");
-                    Console.ResetColor();
-
-                    var client = server.AcceptTcpClient();
-                    Console.WriteLine("Connected!");
-                    
-                    var stream = client.GetStream();
-
-                    int i;
-                    while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+                    var client = server.AcceptSocket();
+                    var childSocketThread = new Thread(() =>
                     {
-                        var data = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
-                        Console.WriteLine("Received: {0}", data);
+                        lock (_lock)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine($"----- Connection accepted at UTC {DateTime.UtcNow:T}. -----");
+                            Console.ResetColor();
 
-                        data = data.ToUpper();
+                            var data = new byte[1000];
+                            var size = client.Receive(data);
+                            var message = "";
+                            Console.WriteLine("Recieved data: ");
+                            for (var i = 0; i < size; i++)
+                                message += Convert.ToChar(data[i]);
 
-                        var msg = System.Text.Encoding.ASCII.GetBytes(data);
-
-                        stream.Write(msg, 0, msg.Length);
-                        Console.WriteLine("Sent: {0}", data);
-                    }
-                    client.Close();
+                            Console.WriteLine(message);
+                        }
+                        client.Close();
+                    });
+                    childSocketThread.Start();
                 }
             }
             catch (SocketException e)
@@ -104,7 +113,6 @@ ARGUMENTS:
             {
                 server.Stop();
             }
-
 
             Console.WriteLine("\nHit enter to continue...");
             Console.Read();
