@@ -74,10 +74,8 @@ EXAMPLES:
                 server = new TcpListener(ipAddress, port);
                 server.Start();
 
-                var bytes = new byte[256];
-
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Waiting for a connection... ");
+                Console.WriteLine($"Waiting for a connection on {ipAddress}:{port}...");
                 Console.ResetColor();
 
                 while (true)
@@ -91,14 +89,15 @@ EXAMPLES:
                             Console.WriteLine($"----- Connection accepted at UTC {DateTime.UtcNow:T}. -----");
                             Console.ResetColor();
 
-                            var data = new byte[1000];
-                            var size = client.Receive(data);
-                            var message = "";
-                            Console.WriteLine("Recieved data: ");
-                            for (var i = 0; i < size; i++)
-                                message += Convert.ToChar(data[i]);
-
-                            Console.WriteLine(message);
+                            while (client.Available > 0)
+                            {
+                                var message = "";
+                                var buffer = new byte[256];
+                                var size = client.Receive(buffer);
+                                for (var i = 0; i < size; i++)
+                                    message += Convert.ToChar(buffer[i]);
+                                Console.WriteLine(message);
+                            }
                         }
                         client.Close();
                     });
