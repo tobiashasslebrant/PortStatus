@@ -5,23 +5,28 @@ using System.Threading;
 
 namespace portstatus
 {
-	class Program
+    //http://stackoverflow.com/questions/19387086/how-to-set-up-tcplistener-to-always-listen-and-accept-multiple-connections
+
+
+    class Program
 	{
-		static void Main(string[] args)
+        static readonly object _lock = new object();
+     
+        static void Main(string[] args)
 		{
          	if (args.Length < 1)
 			{
 				Console.Write($@"
 DESCRIPTION: Checks if a port is open on an address 
-SYNTAX: portstatus.exe address port [-listen]
+SYNTAX: portstatus.exe address port [--listen]
 ARGUMENTS:  
-    address      Address to check or listen to (can be * when listening)  
-    port         Port to check or listen to
-    [-listen]    listening, if not specified is check
+    address           Address to check or listen to (can be * when listening)  
+    port              Port to check or listen to
+    [-l, --listen]    Listening for incomming calls instead of checking a port
 
 EXAMPLES:
     portstatus.exe 1.2.3.4 90       Check if port 90 is open on ip address 1.2.3.4
-    portstatus.exe * 88 -listen     Listens for incoming calls to current machine to port 88 on all ip addresses
+    portstatus.exe * 88 -listen     Listens for incoming calls on current machine to port 88 on all ip addresses
 
 ");
                 return;
@@ -32,7 +37,7 @@ EXAMPLES:
 
             if(args.Length == 2)
                 CheckPort(address, port);
-            else if(args[2] == "-listen")
+            else if(args[2] == "--listen" || args[2] == "-l")
                 ListenToPort(address, port);
             else
                 Console.WriteLine("wrong arguments");
@@ -60,8 +65,6 @@ EXAMPLES:
 	        Console.ResetColor();
 	    }
 
-        static object _lock = new object();
-        //http://stackoverflow.com/questions/19387086/how-to-set-up-tcplistener-to-always-listen-and-accept-multiple-connections
         static void ListenToPort(string address, int port)
         {
             TcpListener server = null;
