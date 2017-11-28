@@ -17,7 +17,7 @@ namespace portstatus
          	if (args.Length < 1)
 			{
 				Console.Write($@"
-DESCRIPTION: Checks if a port is open on an address 
+DESCRIPTION: checks if a port is open on an address 
 SYNTAX: portstatus.exe address port [--listen]
 ARGUMENTS:  
     address           Address to check or listen to (can be * when listening)  
